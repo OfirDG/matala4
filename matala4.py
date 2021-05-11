@@ -20,21 +20,37 @@ def find_city(dest:list):
         parms['origins'] = 'תל אביב'
         parms['destinations'] = city
         parms['key'] = api_key
-        url = Serviceurl + urlencode(parms)
-        response.append(requests.get(url).json())
         parms2['address'] = city
         parms2['key'] = api_key
-        url2 = Serviceurl2 + urlencode(parms2)
-        response.append(requests.get(url2).json())
+        url = Serviceurl + urlencode(parms)
+        url2 = Serviceurl2 + urlencode(parms2)        
+        response_url = requests.get(url).json()
+        response_url2 = requests.get(url2).json()
+        res = response_url['rows'][0]['elements'][0]['status']     #try:
+        if res == 'ZERO_RESULTS' or res == 'NOT_FOUND':# or response_url2 
+
+            response.append('Oops you entered an unexisting city')
+            #continue;
+        else:
+            response.append(response_url)
+            response.append(response_url2)
     return response
 
 #Final dictianory
 def dest_info(response:list):
     result = []
-    i=0
-    j=1
-    respons = find_city(dest)
+    i=-2
+    j=-1
+    response = find_city(dest)
     for city in response:
+        i = i+2
+        j = j+2
+        if j > len(response):
+            break;
+        if response[i] == 'Oops you entered an unexisting city':
+            i = 3
+            j = 4
+            continue;
         dest_name = response[i]['destination_addresses'][0]
         mydict = {dest_name:""}
         mydict[dest_name] = {'distance': "" , 'time': ""}
@@ -43,10 +59,6 @@ def dest_info(response:list):
         mydict[dest_name]['longitude'] = response[j]['results'][0]['geometry']['location']['lng']
         mydict[dest_name]['latitude'] = response[j]['results'][0]['geometry']['location']['lat']  
         result.append(mydict)
-        i = i+2
-        j = j+2
-        if i>8 and j>9:
-            break
     return result
 
 #Sorting by decrease distance
